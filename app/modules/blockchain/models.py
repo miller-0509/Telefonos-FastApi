@@ -1,6 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
+
+
+def _utcnow() -> datetime:
+    """Devuelve la hora UTC actual sin tzinfo para SQLite (naive datetime)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 from sqlalchemy.orm import relationship
 
 from app.core.database import Base
@@ -39,8 +44,8 @@ class EscrowRecord(Base):
 
     deadline = Column(DateTime, nullable=True)
     error = Column(Text, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
 
     order = relationship("Order")
 
