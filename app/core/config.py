@@ -36,4 +36,28 @@ class Settings:
     # CORS: orígenes permitidos (separados por coma). "*" para permitir todos (solo desarrollo)
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "*")
 
+    # ================= Blockchain / Escrow =================
+    # Desactivado por defecto: la app funciona sin nodo ni contratos desplegados.
+    BLOCKCHAIN_ENABLED: bool = os.getenv("BLOCKCHAIN_ENABLED", "false").strip().lower() in (
+        "1", "true", "yes", "on"
+    )
+    BLOCKCHAIN_RPC_URL: str = os.getenv("BLOCKCHAIN_RPC_URL", "http://127.0.0.1:8545")
+    BLOCKCHAIN_CHAIN_ID: int = int(os.getenv("BLOCKCHAIN_CHAIN_ID", "31337"))
+    # Si están vacías, se leen del archivo de despliegue local.
+    BLOCKCHAIN_ESCROW_ADDRESS: str = os.getenv("BLOCKCHAIN_ESCROW_ADDRESS", "")
+    BLOCKCHAIN_USDC_ADDRESS: str = os.getenv("BLOCKCHAIN_USDC_ADDRESS", "")
+    # Cuenta que deposita y libera los fondos (FUNDER_ROLE + ARBITER_ROLE en local).
+    BLOCKCHAIN_PRIVATE_KEY: str = os.getenv("BLOCKCHAIN_PRIVATE_KEY", "")
+    # Dirección que recibe los pagos; por defecto la cuenta desplegadora.
+    BLOCKCHAIN_SELLER_ADDRESS: str = os.getenv("BLOCKCHAIN_SELLER_ADDRESS", "")
+    # Conversión usada para pasar el total en COP a unidades de USDC.
+    BLOCKCHAIN_COP_PER_USDC: float = float(os.getenv("BLOCKCHAIN_COP_PER_USDC", "4000"))
+    BLOCKCHAIN_DEADLINE_DAYS: int = int(os.getenv("BLOCKCHAIN_DEADLINE_DAYS", "14"))
+    BLOCKCHAIN_TX_TIMEOUT: int = int(os.getenv("BLOCKCHAIN_TX_TIMEOUT", "120"))
+    BLOCKCHAIN_EXPLORER_URL: str = os.getenv("BLOCKCHAIN_EXPLORER_URL", "")
+    # Archivo generado por `npm run deploy:local` (relativo a la raíz del proyecto).
+    BLOCKCHAIN_DEPLOYMENT_FILE: str = os.getenv(
+        "BLOCKCHAIN_DEPLOYMENT_FILE", "blockchain/deployments/localhost.json"
+    )
+
 settings = Settings()

@@ -59,6 +59,27 @@ FIRST_ADMIN_PASSWORD=admin123456
 - **SQLite**: los datos se guardan en un volumen Docker (`backend_data`). Para persistencia real en producción considera migrar a PostgreSQL (solo cambia `DATABASE_URL`).
 - **Email**: usa la contraseña de aplicación de Gmail (no tu contraseña normal) si usas Gmail.
 
+## Blockchain / Escrow (opcional)
+
+El módulo de escrow en USDC viene **desactivado por defecto**. Si lo vas a usar en
+producción, despliega los contratos en la red elegida y configura:
+
+```env
+BLOCKCHAIN_ENABLED=true
+BLOCKCHAIN_RPC_URL=https://tu-proveedor-rpc
+BLOCKCHAIN_CHAIN_ID=137
+BLOCKCHAIN_ESCROW_ADDRESS=0x...
+BLOCKCHAIN_USDC_ADDRESS=0x...
+BLOCKCHAIN_PRIVATE_KEY=0x...   # solo en el gestor de secretos
+BLOCKCHAIN_SELLER_ADDRESS=0x...
+BLOCKCHAIN_COP_PER_USDC=4000
+```
+
+> El archivo `blockchain/deployments/localhost.json` **no** se copia dentro de la
+> imagen Docker: en producción define las direcciones con variables de entorno.
+> Antes de manejar fondos reales, revisa el checklist de
+> [`blockchain/README.md`](blockchain/README.md).
+
 ## Construir localmente para probar
 
 ```bash

@@ -19,6 +19,7 @@ Base completa, moderna y lista para producción de una tienda virtual especializ
 - **Autenticación y Seguridad JWT**: Hashing seguro de contraseñas con `bcrypt` y tokens JWT para administradores y clientes.
 - **Endpoints RESTful Documentados**: Documentación interactiva Swagger UI en `/docs` y ReDoc en `/redoc`.
 - **Panel de Administración**: Métricas en tiempo real de facturación, total de órdenes, alertas de stock bajo y formulario para añadir nuevos smartphones al catálogo.
+- **Escrow en Blockchain (opcional)**: Contrato `PhoneEscrow` que custodia el pago de cada orden en **USDC** y lo libera al confirmar la entrega o lo reembolsa si hay un problema.
 
 ---
 
@@ -36,7 +37,8 @@ Telefonos-FastApi/
 │   │   ├── login/             # Autenticación, registro y JWT (rama: login)
 │   │   ├── inventario/        # Marcas, catálogo de celulares y CRUD (rama: inventario)
 │   │   ├── dashboard/         # Panel de administración y métricas (rama: dashboard)
-│   │   └── ventas/            # Órdenes, checkout y rastreo de pedidos (base de main)
+│   │   ├── ventas/            # Órdenes, checkout y rastreo de pedidos (base de main)
+│   │   └── blockchain/        # Integración web3.py con el contrato de escrow
 │   ├── api/
 │   │   └── router.py          # Router maestro que agrega los módulos
 │   ├── static/
@@ -44,6 +46,12 @@ Telefonos-FastApi/
 │   │   └── js/app.js          # Lógica interactiva del cliente (carrito, filtros)
 │   ├── templates/             # Vistas Jinja2 (base, storefront, track, admin)
 │   └── main.py                # Inicialización de FastAPI, montaje estático y lifespans
+├── blockchain/                # Contratos Solidity + Hardhat
+│   ├── contracts/
+│   │   ├── PhoneEscrow.sol    # Escrow en USDC por orden
+│   │   └── MockUSDC.sol       # Stablecoin de prueba (6 decimales)
+│   ├── scripts/deploy.js      # Despliegue local y minteo de USDC de prueba
+│   └── test/                  # Tests de los contratos
 ├── requirements.txt           # Dependencias de Python
 ├── run.py                     # Script de arranque rápido
 └── README.md
@@ -79,6 +87,35 @@ uvicorn app.main:app --reload
 - 📦 **Rastrear Pedido**: [http://127.0.0.1:8000/track](http://127.0.0.1:8000/track)
 - ⚙️ **Panel de Administración**: [http://127.0.0.1:8000/admin](http://127.0.0.1:8000/admin)
 - ⚡ **Documentación Swagger API**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+
+---
+
+## ⛓️ Escrow en Blockchain (opcional)
+
+El módulo viene **desactivado por defecto** (`BLOCKCHAIN_ENABLED=false`), por lo que la tienda funciona igual sin nodo ni contratos.
+
+Para probarlo en local:
+
+```bash
+# Terminal 1: nodo Hardhat
+cd blockchain && npm install && npm run node
+
+# Terminal 2: desplegar MockUSDC + PhoneEscrow
+cd blockchain && npm run deploy:local
+```
+
+Luego añade a tu `.env`:
+
+```env
+BLOCKCHAIN_ENABLED=true
+BLOCKCHAIN_RPC_URL=http://127.0.0.1:8545
+BLOCKCHAIN_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+BLOCKCHAIN_COP_PER_USDC=4000
+```
+
+> La clave anterior es la cuenta #0 de Hardhat: **solo para desarrollo local**.
+
+Los endpoints quedan documentados en Swagger bajo **Blockchain / Escrow**. La guía completa (roles del contrato, API, tests y checklist de producción) está en [`blockchain/README.md`](blockchain/README.md).
 
 ---
 

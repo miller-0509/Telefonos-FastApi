@@ -7,6 +7,7 @@ import pytest
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 os.environ["SMTP_HOST"] = ""
 os.environ["CORS_ORIGINS"] = "*"
+os.environ["BLOCKCHAIN_ENABLED"] = "false"
 
 from fastapi.testclient import TestClient  # noqa: E402
 from app.main import app  # noqa: E402

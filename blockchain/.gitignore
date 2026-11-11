@@ -1,0 +1,11 @@
+# Artefactos de Hardhat y dependencias
+node_modules/
+artifacts/
+cache/
+typechain-types/
+coverage/
+coverage.json
+
+# Direcciones de despliegue local (se regeneran con npm run deploy:local)
+deployments/*.json
+!deployments/.gitkeep

@@ -15,6 +15,7 @@ from app.modules.inventario.crud import get_brands, get_phones, get_phone_by_slu
 from app.modules.ventas.models import Order
 from app.modules.inventario.models import Phone, Brand
 from app.modules.login.models import User
+from app.modules.blockchain.models import EscrowRecord  # noqa: F401 - registra la tabla escrows
 from sqlalchemy import func
 
 # Ensure database tables exist and seed initial data
