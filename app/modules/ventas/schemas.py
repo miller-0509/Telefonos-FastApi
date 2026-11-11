@@ -51,6 +51,24 @@ class OrderResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
+class OrderTrackingResponse(BaseModel):
+    """Campos seguros para consultar públicamente el estado de un pedido."""
+    order_number: str
+    city: str
+    subtotal: float
+    shipping_cost: float
+    tax: float = 0.0
+    discount_amount: float
+    total: float
+    payment_method: str
+    payment_status: str
+    status: str
+    created_at: datetime
+    items: List[OrderItemResponse] = []
+
+    model_config = ConfigDict(from_attributes=True)
+
 class OrderStatusUpdate(BaseModel):
     status: str
     payment_status: Optional[str] = None

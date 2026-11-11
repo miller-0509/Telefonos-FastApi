@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ElectroPhone | Tienda Oficial de Smartphones{% endblock %}</title>
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo-brand">
+                <div class="logo-icon">📱</div>
+                <div class="logo-text">Electro<span>Phone</span></div>
+            </a>
+
+            <div class="nav-search">
+                <span class="nav-search-icon">🔍</span>
+                <input type="text" id="search-input" placeholder="Buscar iPhone, Galaxy S24, Xiaomi, 5G, 256GB...">
+            </div>
+
+            <div class="nav-actions">
+                <a href="/track" class="nav-btn">📦 Rastrear Orden</a>
+                <a href="/admin" class="nav-btn" id="btn-nav-admin" style="display: none;">⚙️ Panel Admin</a>
+                <a href="/docs" target="_blank" class="nav-btn" id="btn-nav-swagger" title="API Docs Swagger" style="display: none;">⚡ Swagger API</a>
+
+                <a href="/login" class="nav-btn" id="btn-nav-login" style="display: none;">👤 Iniciar Sesión</a>
+                <div class="nav-user-menu" id="user-menu" style="display: none;">
+                    <button class="nav-btn" onclick="toggleUserMenu()">👤 <span id="nav-user-name">Mi Cuenta</span> ▾</button>
+                    <div class="user-dropdown" id="user-dropdown">
+                        <div class="user-dropdown-header">
+                            <strong id="dropdown-user-name" style="color:#fff;"></strong>
+                            <small id="dropdown-user-email" style="color: var(--text-dim); display:block;"></small>
+                        </div>
+                        <a href="/account">👤 Mi Cuenta</a>
+                        <a href="/track">📦 Mis Pedidos</a>
+                        <button onclick="handleLogout()" style="background:none;border:none;color:#f87171;text-align:left;padding:0.6rem 1rem;cursor:pointer;width:100%;font-size:0.9rem;">🚪 Cerrar Sesión</button>
+                    </div>
+                </div>
+
+                <button id="btn-open-cart" class="nav-btn cart-btn">
+                    <span>🛒 Carrito</span>
+                    <span id="cart-count-badge" class="cart-badge">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main style="flex: 1;">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Shopping Cart Drawer -->
+    <div id="cart-drawer-overlay" class="cart-drawer-overlay"></div>
+    <aside id="cart-drawer" class="cart-drawer">
+        <div class="cart-header">
+            <h3>Tu Carrito de Compras</h3>
+            <button id="btn-close-cart" class="btn-close-cart">&times;</button>
+        </div>
+        <div id="cart-items-list" class="cart-items-list">
+            <!-- Rendered by app.js -->
+        </div>
+        <div class="cart-footer">
+            <div class="cart-summary-line">
+                <span>Subtotal:</span>
+                <span id="cart-subtotal" style="font-weight: 700; color: #fff;">$0.00</span>
+            </div>
+            <div class="cart-summary-line">
+                <span>Envío (Gratis > $1.200.000):</span>
+                <span id="cart-shipping">$ 0</span>
+            </div>
+            <div class="cart-summary-line total">
+                <span>Total:</span>
+                <span id="cart-total" style="color: var(--accent);">$ 0</span>
+            </div>
+            <button id="btn-cart-checkout" class="btn-checkout" onclick="openCheckoutModal()">
+                💳 Proceder al Pago
+            </button>
+        </div>
+    </aside>
+
+    <!-- Phone Quick Detail Modal -->
+    <div id="phone-detail-modal" class="modal-overlay">
+        <div class="modal-box glass">
+            <button class="modal-close" onclick="closePhoneModal()">&times;</button>
+            <div id="phone-modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Footer -->
+    <footer style="background: var(--bg-secondary); border-top: 1px solid var(--border-color); padding: 3rem 1.5rem 2rem; margin-top: auto;">
+        <div style="max-width: 1300px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+            <div>
+                <div class="logo-brand" style="margin-bottom: 1rem;">
+                    <div class="logo-icon">📱</div>
+                    <div class="logo-text">Electro<span>Phone</span></div>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+                    Tienda en línea desarrollada con <strong>FastAPI</strong>, <strong>SQLAlchemy</strong> y <strong>Pydantic</strong>. Rendimiento ultrarrápido y catálogo en tiempo real.
+                </p>
+            </div>
+            <div>
+                <h4 style="color: #fff; margin-bottom: 1rem; font-size: 1rem;">Enlaces Rápidos</h4>
+                <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.88rem;">
+                    <li><a href="/" style="color: var(--text-muted); text-decoration: none;">Catálogo Completo</a></li>
+                    <li><a href="/track" style="color: var(--text-muted); text-decoration: none;">Seguimiento de Pedido</a></li>
+                    <li><a href="/admin" id="footer-nav-admin" style="color: var(--text-muted); text-decoration: none; display: none;">Administración</a></li>
+                    <li><a href="/docs" target="_blank" style="color: var(--text-muted); text-decoration: none;">Documentación OpenAPI</a></li>
+                </ul>
+            </div>
+            <div>
+                <h4 style="color: #fff; margin-bottom: 1rem; font-size: 1rem;">Garantía & Envíos</h4>
+                <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.6;">
+                    🚀 Envíos express asegurados a todo el país. Garantía directa oficial de 12 meses en todos los equipos libres de fábrica.
+                </p>
+            </div>
+        </div>
+        <div style="max-width: 1300px; margin: 0 auto; border-top: 1px solid var(--border-color); padding-top: 1.5rem; text-align: center; color: var(--text-dim); font-size: 0.82rem;">
+            &copy; 2026 ElectroPhone Store. Desarrollado con FastAPI + SQLite.
+        </div>
+    </footer>
+
+    <!-- App JS -->
+    <script src="/static/js/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

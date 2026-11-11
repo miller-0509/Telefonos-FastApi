@@ -12,12 +12,24 @@ def test_create_order_and_track(client):
     assert resp.status_code == 201, resp.text
     order = resp.json()
     assert order["order_number"].startswith("ORD-")
+    assert order["payment_status"] == "pending"
+    assert order["status"] == "pending"
     assert order["tax"] > 0  # IVA aplicado
     assert order["total"] >= order["subtotal"]
 
     # Rastrear
     resp = client.get(f"/api/v1/orders/track/{order['order_number']}")
     assert resp.status_code == 200
+    assert "customer_email" not in resp.json()
+    assert "customer_phone" not in resp.json()
+    assert "shipping_address" not in resp.json()
+
+
+def test_user_order_history_route_is_not_captured_by_order_id(client, admin_token):
+    headers = {"Authorization": f"Bearer {admin_token}"}
+    resp = client.get("/api/v1/orders/my-orders", headers=headers)
+    assert resp.status_code == 200, resp.text
+    assert isinstance(resp.json(), list)
 
 
 def test_coupon_discount_on_order(client):

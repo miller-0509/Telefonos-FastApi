@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content">
+        <div>
+            <div class="hero-tag">
+                <span>⚡</span> Ofertas de Temporada 2026 en Colombia
+            </div>
+            <h1>Los Últimos <span class="highlight">Smartphones</span> al Mejor Precio</h1>
+            <p>
+                Descubre lo último en tecnología móvil: iPhone 15 Pro Max, Galaxy S24 Ultra, Xiaomi 14 y más con procesadores de última generación, cámaras profesionales y garantía en Colombia.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <h4>100%</h4>
+                    <p>Originales Libres</p>
+                </div>
+                <div class="stat-item">
+                    <h4>12 Meses</h4>
+                    <p>Garantía Directa</p>
+                </div>
+                <div class="stat-item">
+                    <h4>Envío Gratis</h4>
+                    <p>En pedidos > $ 1.200.000</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-banner-card glass">
+            <img src="https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop&q=80" alt="iPhone 15 Pro Max">
+            <div style="margin-top: 1rem;">
+                <div style="font-size: 0.85rem; color: var(--accent); font-weight: 700;">TOP VENTAS EN COLOMBIA</div>
+                <h3 style="font-size: 1.3rem; color: #fff; margin: 0.2rem 0;">iPhone 15 Pro Max 256GB</h3>
+                <span style="font-size: 1.4rem; font-weight: 800; color: #fff;">$ 4.999.900</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Brands Bar -->
+<section class="brands-section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">Explora por Marca</h2>
+            <p class="section-subtitle">Selecciona tu fabricante preferido</p>
+        </div>
+    </div>
+    <div class="brands-grid">
+        {% for brand in brands %}
+        <div class="brand-pill glass brand-pill-filter" data-brand-id="{{ brand.id }}">
+            <div style="font-size: 1.5rem; margin-bottom: 0.2rem;">📱</div>
+            <span>{{ brand.name }}</span>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Main Store Catalog Area -->
+<section class="catalog-container">
+    <!-- Left Sidebar: Filters -->
+    <aside class="filters-sidebar glass">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem;">
+            <h3 style="font-size: 1.15rem; color: #fff;">Filtros</h3>
+            <button id="btn-reset-filters" class="btn-reset-filters" style="width: auto; padding: 0.3rem 0.6rem; font-size: 0.78rem;">Limpiar</button>
+        </div>
+
+        <!-- Price Range Filter (COP) -->
+        <div class="filter-group">
+            <div class="filter-title">Precio Máximo</div>
+            <div class="price-slider-wrap">
+                <input type="range" id="price-range-slider" min="1000000" max="7000000" step="100000" value="7000000">
+                <div class="price-values">
+                    <span>$ 1.000.000</span>
+                    <span id="price-range-val" style="color: var(--accent); font-weight: 700;">$ 7.000.000</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5G Connectivity -->
+        <div class="filter-group">
+            <label class="filter-option" style="font-weight: 600; color: #fff;">
+                <input type="checkbox" id="filter-5g-only">
+                <span>Solo celulares 5G ⚡</span>
+            </label>
+        </div>
+
+        <!-- RAM Filter -->
+        <div class="filter-group">
+            <div class="filter-title">Memoria RAM</div>
+            <label class="filter-option">
+                <input type="radio" name="ram_filter" value="">
+                <span>Cualquiera</span>
+            </label>
+            <label class="filter-option">
+                <input type="radio" name="ram_filter" value="6">
+                <span>6 GB</span>
+            </label>
+            <label class="filter-option">
+                <input type="radio" name="ram_filter" value="8">
+                <span>8 GB</span>
+            </label>
+            <label class="filter-option">
+                <input type="radio" name="ram_filter" value="12">
+                <span>12 GB</span>
+            </label>
+            <label class="filter-option">
+                <input type="radio" name="ram_filter" value="16">
+                <span>16 GB (Gama Alta)</span>
+            </label>
+        </div>
+
+        <!-- Storage Filter -->
+        <div class="filter-group">
+            <div class="filter-title">Almacenamiento</div>
+            <label class="filter-option">
+                <input type="radio" name="storage_filter" value="">
+                <span>Cualquiera</span>
+            </label>
+            <label class="filter-option">
+                <input type="radio" name="storage_filter" value="128">
+                <span>128 GB</span>
+            </label>
+            <label class="filter-option">
+                <input type="radio" name="storage_filter" value="256">
+                <span>256 GB</span>
+            </label>
+            <label class="filter-option">
+                <input type="radio" name="storage_filter" value="512">
+                <span>512 GB</span>
+            </label>
+        </div>
+    </aside>
+
+    <!-- Right: Products Grid -->
+    <div class="catalog-content">
+        <div class="catalog-topbar glass">
+            <span id="results-count" class="results-count">Cargando catálogo...</span>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label for="sort-catalog-select" style="font-size: 0.85rem; color: var(--text-dim);">Ordenar por:</label>
+                <select id="sort-catalog-select" class="sort-select">
+                    <option value="created_at">Novedades</option>
+                    <option value="price_asc">Precio: Menor a Mayor</option>
+                    <option value="price_desc">Precio: Mayor a Menor</option>
+                    <option value="rating">Mejor Valorados</option>
+                    <option value="name">Nombre A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Cards injected dynamically by app.js -->
+        <div id="products-grid" class="products-grid"></div>
+    </div>
+</section>
+
+<!-- Checkout Modal -->
+<div id="checkout-modal" class="modal-overlay">
+    <div class="modal-box glass" style="max-width: 600px; padding: 2rem;">
+        <button class="modal-close" onclick="closeCheckoutModal()">&times;</button>
+        <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem;">Finalizar Compra</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Ingresa tus datos para procesar el envío de tus celulares a cualquier ciudad de Colombia.</p>
+
+        <form id="checkout-form" onsubmit="handleCheckoutSubmit(event)">
+            <div style="display: flex; flex-direction: column; gap: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Nombre Completo</label>
+                    <input type="text" name="customer_name" required placeholder="Ej: Juan Sebastián Ramírez" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                </div>
+
+                <div class="form-grid-2">
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Correo Electrónico</label>
+                        <input type="email" name="customer_email" required placeholder="juan@ejemplo.com" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Teléfono Móvil (Celular)</label>
+                        <input type="tel" name="customer_phone" required placeholder="+57 310 123 4567" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Dirección de Entrega</label>
+                    <input type="text" name="shipping_address" required placeholder="Carrera 15 # 85-30, Apto 402" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                </div>
+
+                <div class="form-grid-12">
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Ciudad / Municipio</label>
+                        <input type="text" name="city" required placeholder="Bogotá D.C., Medellín, Cali..." style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Código Postal / Barrio</label>
+                        <input type="text" name="postal_code" placeholder="110221 / Chapinero" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Método de Pago</label>
+                    <select name="payment_method" style="width: 100%; padding: 0.65rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                        <option value="pse">🏦 PSE (Transferencia Bancaria en Línea)</option>
+                        <option value="nequi">📱 Nequi / Daviplata</option>
+                        <option value="credit_card">💳 Tarjeta de Crédito / Débito (Visa / Mastercard / Amex)</option>
+                        <option value="cash_on_delivery">💵 Pago Contra Entrega (Efectivo)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-checkout" style="margin-top: 1rem;">
+                    Confirmar y Pagar Orden
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Order Success Modal -->
+<div id="order-success-modal" class="modal-overlay">
+    <div class="modal-box glass" style="max-width: 520px;">
+        <div id="order-success-content"></div>
+    </div>
+</div>
+{% endblock %}

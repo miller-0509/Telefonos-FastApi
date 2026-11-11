@@ -1,56 +1,50 @@
-# Despliegue en Coolify
+# Despliegue de una sola imagen React + FastAPI
 
-Este proyecto tiene **backend (FastAPI)** y **frontend (Flutter)** en el mismo repositorio, desplegados como **servicios separados** en Coolify.
+El `Dockerfile` de la raíz usa una etapa Node para compilar React y una etapa Python para ejecutar FastAPI y servir esos archivos. La imagen final contiene **ambas partes en un solo contenedor** y escucha en el puerto `8000`.
 
-## Arquitectura
+## Coolify con Dockerfile (recomendado)
 
-```
-api.tudominio.com   ──►  backend  (FastAPI, puerto 8000)
-app.tudominio.com   ──►  frontend (Flutter web, nginx puerto 80)
-```
+1. Crea un recurso **Application** conectado a `Brandon161-arch/Telefonos-FastApi`, rama `main`.
+2. Selecciona el build pack **Dockerfile**, Dockerfile `/Dockerfile` y base directory `/`.
+3. En **Ports Exposes**, configura `8000`.
+4. Asigna el dominio al puerto interno `8000`.
+5. Añade las variables obligatorias y despliega.
+6. En **Persistent Storage**, monta un volumen en `/app/data` para conservar SQLite.
 
-El frontend Flutter se compila con la URL del backend quemada vía build-arg `API_BASE_URL`.
-
-## Opción A: Docker Compose en Coolify
-
-1. En Coolify crea un nuevo recurso tipo **Docker Compose**.
-2. Apunta al repositorio y elige la rama `main`.
-3. Configura las variables de entorno (o crea el archivo `.env`):
+## Variables obligatorias
 
 ```env
-SECRET_KEY=una-clave-segura-larga-y-aleatoria
-APP_BASE_URL=https://api.tudominio.com
-API_BASE_URL=https://api.tudominio.com/api/v1
+SECRET_KEY=<clave-aleatoria-larga>
+FIRST_ADMIN_EMAIL=<correo-administrador>
+FIRST_ADMIN_PASSWORD=<contraseña-segura>
+FRONTEND_URL=https://app.tudominio.com
 CORS_ORIGINS=https://app.tudominio.com
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=tu.correo@gmail.com
-SMTP_PASSWORD=tu-clave-de-app
-SMTP_FROM_EMAIL=tu.correo@gmail.com
-SMTP_FROM_NAME=ElectroPhone Store
-FIRST_ADMIN_EMAIL=admin@electrophone.com
-FIRST_ADMIN_PASSWORD=admin123456
+PORT=8000
 ```
 
-4. En **Proxy/Domains**:
-   - `backend` → dominio `api.tudominio.com`, puerto `8000`.
-   - `frontend` → dominio `app.tudominio.com`, puerto `80`.
+El Dockerfile activa `SERVE_FRONTEND=true`. React usa una URL relativa para la API, por lo que no requiere `VITE_API_URL`.
 
-## Opción B: Dos recursos "Application"
+Variables opcionales para correo:
 
-1. **Recurso 1 (backend)**:
-   - Tipo: `Dockerfile`
-   - `Dockerfile location`: `/Dockerfile`
-   - `Build context`: `/`
-   - Variables de entorno: las mismas de arriba (sin `API_BASE_URL`).
-   - Domain: `api.tudominio.com` → puerto `8000`.
+```env
+SMTP_HOST=<servidor-smtp>
+SMTP_PORT=587
+SMTP_USER=<usuario-smtp>
+SMTP_PASSWORD=<contraseña-de-aplicacion>
+SMTP_FROM_EMAIL=<correo-remitente>
+SMTP_FROM_NAME=ElectroPhone Store
+VERIFICATION_TOKEN_EXPIRE_HOURS=24
+```
 
-2. **Recurso 2 (frontend)**:
-   - Tipo: `Dockerfile`
-   - `Dockerfile location`: `/frontend_flutter/Dockerfile`
-   - `Build context`: `/frontend_flutter`
-   - Build args: `API_BASE_URL=https://api.tudominio.com/api/v1`
-   - Domain: `app.tudominio.com` → puerto `80`.
+## Docker Compose
+
+También se puede desplegar como recurso **Docker Compose**: `docker-compose.yml` construye el mismo Dockerfile y ejecuta un servicio `app`. Asigna el dominio al servicio `app`, puerto `8000`; conserva el volumen `backend_data`.
+
+## Comprobaciones
+
+- Tienda React: `https://app.tudominio.com/`
+- Salud: `https://app.tudominio.com/health`
+- Swagger: `https://app.tudominio.com/docs`
 
 ## Notas importantes
 

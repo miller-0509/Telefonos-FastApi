@@ -13,8 +13,15 @@ env/
 *.db
 *.sqlite3
 
-# Frontend Flutter (se construye en su propio Dockerfile)
+# Frontends heredados y builds locales
 frontend_flutter/
+
+frontend/node_modules/
+frontend/dist/
+frontend/.env*
+!frontend/.env.example
+android/
+desktop/
 
 # Tests
 tests/

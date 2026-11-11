@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Verificar Correo | ElectroPhone{% endblock %}
+
+{% block content %}
+<div style="max-width: 520px; margin: 3rem auto 5rem; padding: 0 1.5rem;">
+    <div class="glass" style="padding: 2.5rem; border-radius: var(--radius-lg); text-align: center;" id="verify-card">
+        <div style="font-size: 3.5rem; margin-bottom: 1rem;" id="verify-icon">⏳</div>
+        <h1 style="font-size: 1.6rem; color: #fff; margin-bottom: 0.5rem;" id="verify-title">Verificando tu cuenta...</h1>
+        <p style="color: var(--text-muted); margin-bottom: 1.5rem;" id="verify-detail">Por favor espera un momento.</p>
+
+        <a href="/login" id="verify-login-btn" style="display: none;" class="btn-checkout" style="text-decoration:none;">🔐 Ir a Iniciar Sesión</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const token = new URLSearchParams(window.location.search).get('token');
+
+    if (!token) {
+        document.getElementById('verify-icon').innerText = '❌';
+        document.getElementById('verify-title').innerText = 'Enlace inválido';
+        document.getElementById('verify-detail').innerText = 'Falta el token de verificación en la URL.';
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/v1/auth/verify-email?token=${encodeURIComponent(token)}`);
+        const data = await res.json();
+
+        const icon = document.getElementById('verify-icon');
+        const title = document.getElementById('verify-title');
+        const detail = document.getElementById('verify-detail');
+
+        if (res.ok) {
+            icon.innerText = '✅';
+            title.innerText = '¡Cuenta verificada!';
+            detail.innerText = data.message;
+        } else {
+            icon.innerText = '⚠️';
+            title.innerText = 'No se pudo verificar';
+            detail.innerText = data.detail || 'Ocurrió un error.';
+        }
+
+        document.getElementById('verify-login-btn').style.display = 'inline-block';
+        showToast(title.innerText, res.ok ? 'success' : 'error');
+    } catch (err) {
+        document.getElementById('verify-icon').innerText = '❌';
+        document.getElementById('verify-title').innerText = 'Error de conexión';
+        document.getElementById('verify-detail').innerText = 'No pudimos comunicarnos con el servidor.';
+    }
+});
+</script>
+{% endblock %}

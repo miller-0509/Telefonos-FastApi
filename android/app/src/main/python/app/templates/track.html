@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Seguimiento de Orden | ElectroPhone{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 3rem auto 5rem; padding: 0 1.5rem;">
+    <div class="glass" style="padding: 2.5rem; border-radius: var(--radius-lg); text-align: center; margin-bottom: 2rem;">
+        <div style="font-size: 3rem; margin-bottom: 0.5rem;">📦</div>
+        <h1 style="font-size: 2rem; color: #fff; margin-bottom: 0.5rem;">Rastrear mi Pedido</h1>
+        <p style="color: var(--text-muted); max-width: 500px; margin: 0 auto 2rem;">
+            Ingresa el código de orden (ejemplo: <code>ORD-3A8F2B10</code>) para consultar el estado en tiempo real de tu envío.
+        </p>
+
+        <form id="track-form" onsubmit="handleTrackOrder(event)" style="display: flex; gap: 0.8rem; max-width: 500px; margin: 0 auto;">
+            <input type="text" id="order-number-input" required placeholder="ORD-XXXXXXXX" style="flex: 1; padding: 0.8rem 1.2rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff; font-size: 1rem; text-transform: uppercase;">
+            <button type="submit" class="nav-btn" style="background: var(--accent-gradient); color: #fff; border: none; padding: 0.8rem 1.5rem; font-weight: 700;">
+                Consultar
+            </button>
+        </form>
+    </div>
+
+    <div id="track-result-container" style="display: none;">
+        <!-- Injected dynamically -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function handleTrackOrder(e) {
+    e.preventDefault();
+    const orderNumber = document.getElementById('order-number-input').value.trim().toUpperCase();
+    const container = document.getElementById('track-result-container');
+
+    container.style.display = 'block';
+    container.innerHTML = `
+        <div class="glass" style="padding: 2rem; border-radius: var(--radius-md); text-align: center;">
+            <div style="font-size: 2rem; animation: spin 1s linear infinite;">⚡</div>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Buscando información del pedido...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`/api/v1/orders/track/${orderNumber}`);
+        if (!response.ok) {
+            throw new Error('No encontramos ninguna orden con ese identificador');
+        }
+        const order = await response.json();
+
+        let statusBadge = '<span class="badge badge-featured">En Proceso</span>';
+        if (order.status === 'shipped') statusBadge = '<span class="badge badge-5g">Enviado en Camino 🚚</span>';
+        if (order.status === 'delivered') statusBadge = '<span class="badge badge-5g" style="background: rgba(16,185,129,0.2); color:#34d399; border-color:#34d399;">Entregado ✅</span>';
+
+        container.innerHTML = `
+            <div class="glass" style="padding: 2rem; border-radius: var(--radius-md);">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <div>
+                        <small style="color: var(--text-dim); text-transform: uppercase;">Orden</small>
+                        <h2 style="font-size: 1.4rem; color: #fff; font-family: monospace;">${order.order_number}</h2>
+                    </div>
+                    <div>
+                        ${statusBadge}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; background: rgba(255,255,255,0.03); padding: 1rem; border-radius: var(--radius-sm);">
+                    <div>
+                        <small style="color: var(--text-dim);">Cliente:</small>
+                        <div style="font-weight: 600; color: #fff;">${order.customer_name}</div>
+                    </div>
+                    <div>
+                        <small style="color: var(--text-dim);">Dirección:</small>
+                        <div style="font-weight: 600; color: #fff;">${order.shipping_address}, ${order.city}</div>
+                    </div>
+                    <div>
+                        <small style="color: var(--text-dim);">Pago:</small>
+                        <div style="font-weight: 600; color: #fff; text-transform: capitalize;">${order.payment_method} (${order.payment_status})</div>
+                    </div>
+                </div>
+
+                <h4 style="color: #fff; margin-bottom: 1rem;">Equipos en la orden:</h4>
+                <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem;">
+                    ${order.items.map(item => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <div>
+                                <span style="color: #fff; font-weight: 600;">${item.phone_name}</span>
+                                <small style="color: var(--text-muted); display: block;">${item.phone_color || ''} - Cantidad: ${item.quantity}</small>
+                            </div>
+                            <span style="font-weight: 700; color: var(--accent);">${formatCOP(item.subtotal)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div style="border-top: 1px dashed var(--border-color); padding-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.1rem; color: var(--text-muted);">Total de la compra:</span>
+                    <span style="font-size: 1.5rem; font-weight: 800; color: #fff;">${formatCOP(order.total)}</span>
+                </div>
+            </div>
+        `;
+    } catch (err) {
+        container.innerHTML = `
+            <div class="glass" style="padding: 2rem; border-radius: var(--radius-md); text-align: center; border-color: rgba(239, 68, 68, 0.4);">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍❌</div>
+                <h3 style="color: #ef4444; margin-bottom: 0.5rem;">Orden no encontrada</h3>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Verifica el número ingresado e intenta nuevamente.</p>
+            </div>
+        `;
+    }
+}
+</script>
+{% endblock %}

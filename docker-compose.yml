@@ -1,17 +1,18 @@
 services:
-  backend:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: electrophone-backend
     restart: unless-stopped
     environment:
-      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
-      DATABASE_URL: sqlite:///./data/telefonos.db
-      FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:-admin@electrophone.com}
-      FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD:-admin123456}
-      APP_BASE_URL: ${APP_BASE_URL:-https://api.example.com}
-      CORS_ORIGINS: ${CORS_ORIGINS:-*}
+      SECRET_KEY: ${SECRET_KEY:?Define SECRET_KEY en las variables de Coolify}
+      DATABASE_URL: sqlite:////app/data/telefonos.db
+      PORT: "8000"
+      SERVE_FRONTEND: "true"
+      FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:?Define FIRST_ADMIN_EMAIL en Coolify}
+      FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD:?Define FIRST_ADMIN_PASSWORD en Coolify}
+      FRONTEND_URL: ${FRONTEND_URL:?Define FRONTEND_URL con el dominio de React}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Define CORS_ORIGINS con el origen de React}
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
@@ -33,20 +34,8 @@ services:
       BLOCKCHAIN_EXPLORER_URL: ${BLOCKCHAIN_EXPLORER_URL:-}
     volumes:
       - backend_data:/app/data
-    # En Coolify, los puertos se exponen vía el proxy (no hace falta mapear aquí)
     expose:
       - "8000"
-
-  frontend:
-    build:
-      context: ./frontend_flutter
-      dockerfile: Dockerfile
-      args:
-        API_BASE_URL: ${API_BASE_URL:-https://api.example.com/api/v1}
-    container_name: electrophone-frontend
-    restart: unless-stopped
-    expose:
-      - "80"
 
 volumes:
   backend_data:

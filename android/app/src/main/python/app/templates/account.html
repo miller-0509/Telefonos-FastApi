@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Cuenta | ElectroPhone{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 3rem auto 5rem; padding: 0 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 2rem; color: #fff; font-weight: 800;">Mi Cuenta</h1>
+            <p style="color: var(--text-muted);">Gestiona tu perfil y consulta tus compras.</p>
+        </div>
+        <button onclick="handleLogout()" class="nav-btn" style="border:1px solid #ef4444; color:#f87171;">🚪 Cerrar Sesión</button>
+    </div>
+
+    <!-- Perfil -->
+    <div class="glass" style="padding: 1.8rem; border-radius: var(--radius-lg); margin-bottom: 2rem;">
+        <h3 style="font-size: 1.2rem; color: #fff; margin-bottom: 1.2rem;">👤 Perfil</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+            <div>
+                <small style="color: var(--text-dim);">Nombre</small>
+                <div style="font-weight: 600; color: #fff;" id="profile-name">-</div>
+            </div>
+            <div>
+                <small style="color: var(--text-dim);">Correo</small>
+                <div style="font-weight: 600; color: #fff;" id="profile-email">-</div>
+            </div>
+            <div>
+                <small style="color: var(--text-dim);">Teléfono</small>
+                <div style="font-weight: 600; color: #fff;" id="profile-phone">-</div>
+            </div>
+            <div>
+                <small style="color: var(--text-dim);">Dirección</small>
+                <div style="font-weight: 600; color: #fff;" id="profile-address">-</div>
+            </div>
+        </div>
+        <div style="margin-top: 1rem; display: flex; align-items: center; gap: 0.6rem;" id="profile-verified">
+            <span class="badge badge-featured">Verificando...</span>
+        </div>
+    </div>
+
+    <!-- Mis Órdenes -->
+    <div class="glass" style="border-radius: var(--radius-lg); padding: 1.8rem;">
+        <h3 style="font-size: 1.2rem; color: #fff; margin-bottom: 1.2rem;">📦 Mis Órdenes</h3>
+        <div id="my-orders-container">
+            <p style="color: var(--text-muted);">Cargando tus órdenes...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const user = getCurrentUser();
+    if (!user) {
+        window.location.href = '/login';
+        return;
+    }
+
+    document.getElementById('profile-name').innerText = user.full_name || '-';
+    document.getElementById('profile-email').innerText = user.email || '-';
+    document.getElementById('profile-phone').innerText = user.phone_number || '-';
+    document.getElementById('profile-address').innerText = user.address || '-';
+
+    const verifiedEl = document.getElementById('profile-verified');
+    if (user.is_verified) {
+        verifiedEl.innerHTML = '<span class="badge badge-5g" style="background:rgba(16,185,129,0.2); color:#34d399; border-color:#34d399;">✅ Verificado</span>';
+    } else {
+        verifiedEl.innerHTML = '<span class="badge badge-featured">⚠️ Pendiente de verificación</span>';
+    }
+
+    try {
+        const res = await fetch('/api/v1/orders/my-orders', {
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem('electrophone_token') }
+        });
+        const orders = await res.json();
+        const container = document.getElementById('my-orders-container');
+
+        if (!res.ok) {
+            container.innerHTML = `<p style="color:var(--text-muted);">No se pudieron cargar tus órdenes.</p>`;
+            return;
+        }
+
+        if (orders.length === 0) {
+            container.innerHTML = `<p style="color:var(--text-muted);">Aún no has realizado compras. <a href="/" style="color:var(--accent);">¡Explora el catálogo!</a></p>`;
+            return;
+        }
+
+        container.innerHTML = orders.map(order => `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem 0; border-bottom:1px solid rgba(255,255,255,0.06); flex-wrap:wrap; gap:0.8rem;">
+                <div>
+                    <div style="font-weight:700; color:#fff; font-family:monospace;">${order.order_number}</div>
+                    <small style="color:var(--text-muted);">${new Date(order.created_at).toLocaleDateString('es-CO')} • ${order.items.length} producto(s)</small>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-weight:800; color:var(--accent);">${formatCOP(order.total)}</div>
+                    <span class="badge" style="text-transform:capitalize;">${order.status}</span>
+                </div>
+            </div>
+        `).join('');
+    } catch (err) {
+        document.getElementById('my-orders-container').innerHTML = `<p style="color:var(--text-muted);">Error al cargar tus órdenes.</p>`;
+    }
+});
+</script>
+{% endblock %}

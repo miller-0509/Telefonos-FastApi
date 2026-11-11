@@ -26,8 +26,8 @@ class Order(Base):
     total = Column(Float, nullable=False)
 
     payment_method = Column(String(50), default="credit_card") # 'credit_card', 'paypal', 'transfer', 'cash_on_delivery'
-    payment_status = Column(String(50), default="completed")    # 'pending', 'completed', 'failed'
-    status = Column(String(50), default="processing")           # 'pending', 'processing', 'shipped', 'delivered', 'cancelled'
+    payment_status = Column(String(50), default="pending")      # 'pending', 'completed', 'failed'
+    status = Column(String(50), default="pending")              # 'pending', 'processing', 'shipped', 'delivered', 'cancelled'
 
     created_at = Column(DateTime, default=datetime.utcnow)
 

@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SECRET_KEY: ${SECRET_KEY:?Define SECRET_KEY en las variables de Coolify}
+      DATABASE_URL: sqlite:////app/data/telefonos.db
+      PORT: "8000"
+      SERVE_FRONTEND: "true"
+      FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL:?Define FIRST_ADMIN_EMAIL en Coolify}
+      FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD:?Define FIRST_ADMIN_PASSWORD en Coolify}
+      FRONTEND_URL: ${FRONTEND_URL:?Define FRONTEND_URL con el dominio de React}
+      CORS_ORIGINS: ${CORS_ORIGINS:?Define CORS_ORIGINS con el origen de React}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@electrophone.com}
+      SMTP_FROM_NAME: ${SMTP_FROM_NAME:-ElectroPhone Store}
+      VERIFICATION_TOKEN_EXPIRE_HOURS: ${VERIFICATION_TOKEN_EXPIRE_HOURS:-24}
+    volumes:
+      - backend_data:/app/data
+    expose:
+      - "8000"
+
+volumes:
+  backend_data:

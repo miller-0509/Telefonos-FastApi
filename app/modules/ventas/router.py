@@ -2,7 +2,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.modules.ventas.schemas import OrderCreate, OrderResponse, OrderStatusUpdate, CouponCreate, CouponResponse, CouponApplyResult
+from app.modules.ventas.schemas import (
+    OrderCreate, OrderResponse, OrderTrackingResponse, OrderStatusUpdate,
+    CouponCreate, CouponResponse, CouponApplyResult
+)
 from app.modules.ventas.crud import (
     create_order, get_order, get_order_by_number, get_orders, update_order_status,
     get_coupons, create_coupon, delete_coupon, get_coupon_by_code, validate_coupon
@@ -27,13 +30,21 @@ def checkout_order(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al procesar la orden: {str(e)}")
-@router.get("/track/{order_number}", response_model=OrderResponse)
+@router.get("/track/{order_number}", response_model=OrderTrackingResponse)
 def track_order(order_number: str, db: Session = Depends(get_db)):
-    """Rastrear estado y resumen de una orden mediante su número de seguimiento"""
+    """Consultar el estado y resumen no sensible de una orden."""
     order = get_order_by_number(db, order_number=order_number)
     if not order:
         raise HTTPException(status_code=404, detail="Orden no encontrada")
     return order
+
+@router.get("/my-orders", response_model=List[OrderResponse])
+def get_user_orders(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Obtener historial de compras del usuario autenticado"""
+    return get_orders(db, user_id=current_user.id)
 
 @router.get("/{order_id}", response_model=OrderResponse)
 def get_order_detail(
@@ -51,14 +62,6 @@ def get_order_detail(
             detail="No tienes permiso para ver esta orden"
         )
     return order
-
-@router.get("/my-orders", response_model=List[OrderResponse])
-def get_user_orders(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Obtener historial de compras del usuario autenticado"""
-    return get_orders(db, user_id=current_user.id)
 
 @router.get("", response_model=List[OrderResponse])
 def get_all_orders(

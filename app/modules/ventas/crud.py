@@ -78,8 +78,9 @@ def create_order(db: Session, order_in: OrderCreate, user_id: Optional[int] = No
         discount_amount=round(discount, 2),
         total=total,
         payment_method=order_in.payment_method,
-        payment_status="completed",
-        status="processing"
+        # No hay pasarela de pagos integrada: no marcar cobros simulados como pagados.
+        payment_status="pending",
+        status="pending"
     )
     db.add(db_order)
     db.flush() # Flush to get db_order.id

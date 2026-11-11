@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ phone.name }} | ElectroPhone{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 2rem auto 5rem; padding: 0 1.5rem;">
+    <!-- Breadcrumb -->
+    <div style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+        <a href="/" style="color: var(--text-muted); text-decoration: none;">Inicio</a>
+        <span> / </span>
+        {% if phone.brand %}
+        <span>{{ phone.brand.name }}</span>
+        <span> / </span>
+        {% endif %}
+        <span style="color: var(--text-main);">{{ phone.name }}</span>
+    </div>
+
+    <!-- Top: imagen + datos principales -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; margin-bottom: 3rem;">
+        <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-lg); display: flex; align-items: center; justify-content: center;">
+            <img src="{{ phone.image_url }}" alt="{{ phone.name }}" style="max-width: 100%; max-height: 420px; object-fit: contain; border-radius: var(--radius-md);">
+        </div>
+
+        <div>
+            <div style="display: flex; gap: 0.6rem; margin-bottom: 0.8rem; flex-wrap: wrap;">
+                {% if phone.is_5g %}<span class="badge badge-5g">5G</span>{% endif %}
+                {% if phone.is_featured %}<span class="badge badge-featured">Destacado</span>{% endif %}
+                {% if phone.discount_price and phone.discount_price < phone.price %}<span class="badge badge-offer">Oferta</span>{% endif %}
+            </div>
+
+            <div style="font-size: 0.9rem; color: var(--accent); font-weight: 800; text-transform: uppercase; margin-bottom: 0.3rem;">
+                {{ phone.brand.name if phone.brand else 'Smartphone' }}
+            </div>
+            <h1 style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0 0 0.5rem;">{{ phone.name }}</h1>
+
+            <!-- Rating summary -->
+            <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1rem;">
+                <span style="color: #fbbf24; font-size: 1.1rem;">{{ '★' * phone.rating|int }}{{ '☆' * (5 - phone.rating|int) }}</span>
+                <span style="color: var(--text-muted); font-size: 0.9rem;">{{ phone.rating }} ({{ phone.rating_count }} reseñas)</span>
+            </div>
+
+            <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;">{{ phone.description or 'Sin descripción.' }}</p>
+
+            <!-- Price -->
+            <div style="margin-bottom: 1.8rem;">
+                {% if phone.discount_price and phone.discount_price < phone.price %}
+                <span style="color: var(--text-muted); text-decoration: line-through; font-size: 1.1rem; margin-right: 0.8rem;">{{ phone.price | cop }}</span>
+                <span style="font-size: 2.2rem; font-weight: 800; color: #fff;">{{ phone.discount_price | cop }}</span>
+                {% else %}
+                <span style="font-size: 2.2rem; font-weight: 800; color: #fff;">{{ phone.price | cop }}</span>
+                {% endif %}
+                <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem;">IVA incluido • Garantía 12 meses</div>
+            </div>
+
+            <!-- Stock -->
+            <div style="margin-bottom: 1.8rem;">
+                {% if phone.stock > 0 %}
+                <span style="color: #34d399; font-weight: 600;">✓ Disponible — {{ phone.stock }} unidades</span>
+                {% else %}
+                <span style="color: #ef4444; font-weight: 600;">✗ Agotado</span>
+                {% endif %}
+            </div>
+
+            <button class="btn-checkout" style="width: 100%; max-width: 340px; padding: 1rem; font-size: 1.05rem;"
+                    {% if phone.stock <= 0 %}disabled{% endif %}
+                    onclick="addToCart({{ phone.id }}, '{{ phone.name.replace("'", "\\'") }}', {{ phone.discount_price if phone.discount_price and phone.discount_price > 0 else phone.price }}, '{{ phone.image_url }}', '{{ phone.color }}', '{{ phone.storage_gb }}GB')">
+                🛒 Agregar al Carrito
+            </button>
+        </div>
+    </div>
+
+    <!-- Especificaciones técnicas -->
+    <div class="glass" style="border-radius: var(--radius-lg); padding: 1.8rem; margin-bottom: 2.5rem;">
+        <h3 style="font-size: 1.3rem; color: #fff; margin-bottom: 1.2rem;">📋 Especificaciones Técnicas</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+            <div class="spec-detail-box"><small>Procesador</small><strong>{{ phone.processor or 'N/A' }}</strong></div>
+            <div class="spec-detail-box"><small>Pantalla</small><strong>{{ phone.screen_size or '-' }}" {{ phone.screen_type or '' }}</strong></div>
+            <div class="spec-detail-box"><small>Memoria RAM</small><strong>{{ phone.ram_gb }} GB</strong></div>
+            <div class="spec-detail-box"><small>Almacenamiento</small><strong>{{ phone.storage_gb }} GB</strong></div>
+            <div class="spec-detail-box"><small>Color</small><strong>{{ phone.color }}</strong></div>
+            <div class="spec-detail-box"><small>Cámara Principal</small><strong>{{ phone.main_camera_mp or '-' }} MP</strong></div>
+            <div class="spec-detail-box"><small>Cámara Frontal</small><strong>{{ phone.front_camera_mp or '-' }} MP</strong></div>
+            <div class="spec-detail-box"><small>Batería</small><strong>{{ phone.battery_mah or '-' }} mAh</strong></div>
+            <div class="spec-detail-box"><small>Sistema Operativo</small><strong>{{ phone.os or 'N/A' }}</strong></div>
+            <div class="spec-detail-box"><small>Conectividad</small><strong>{{ '5G' if phone.is_5g else '4G' }}</strong></div>
+            <div class="spec-detail-box"><small>Código de modelo</small><strong>{{ phone.model_code or 'N/A' }}</strong></div>
+        </div>
+    </div>
+
+    <!-- Reseñas -->
+    <div class="glass" style="border-radius: var(--radius-lg); padding: 1.8rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.8rem;">
+            <h3 style="font-size: 1.3rem; color: #fff;">⭐ Reseñas de Clientes</h3>
+            <div id="reviews-rating-summary" style="color: var(--text-muted); font-size: 0.95rem;">Cargando...</div>
+        </div>
+
+        <div id="reviews-list" style="margin-bottom: 2rem;">
+            <p style="color: var(--text-muted);">Cargando reseñas...</p>
+        </div>
+
+        <!-- Form de reseña -->
+        <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+            <h4 style="color: #fff; margin-bottom: 1rem;">Deja tu reseña</h4>
+            <form id="review-form" onsubmit="handleReviewSubmit(event)">
+                <div style="display: flex; flex-direction: column; gap: 0.8rem; max-width: 600px;">
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Tu calificación</label>
+                        <div id="star-rating" style="font-size: 2rem; cursor: pointer; color: #4b5563;">
+                            <span data-val="1">★</span><span data-val="2">★</span><span data-val="3">★</span><span data-val="4">★</span><span data-val="5">★</span>
+                        </div>
+                        <input type="hidden" name="rating" id="review-rating" value="5">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem;">Comentario</label>
+                        <textarea name="comment" rows="4" required minlength="3" maxlength="2000" placeholder="¿Qué te pareció este celular?" style="width: 100%; padding: 0.7rem; border-radius: 6px; border: 1px solid var(--border-color); background: rgba(255,255,255,0.05); color: #fff;"></textarea>
+                    </div>
+                    <div id="review-msg" style="display: none; font-size: 0.9rem; padding: 0.8rem; border-radius: 6px;"></div>
+                    <button type="submit" class="btn-checkout" style="width: auto; align-self: flex-start;">Publicar Reseña</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const PHONE_ID = {{ phone.id }};
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadReviews();
+
+    // Star rating widget
+    const stars = document.querySelectorAll('#star-rating span');
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            const val = parseInt(star.dataset.val);
+            document.getElementById('review-rating').value = val;
+            stars.forEach((s, i) => s.style.color = i < val ? '#fbbf24' : '#4b5563');
+        });
+        star.addEventListener('mouseenter', () => {
+            const val = parseInt(star.dataset.val);
+            stars.forEach((s, i) => s.style.color = i < val ? '#fbbf24' : '#4b5563');
+        });
+    });
+    document.querySelector('#star-rating').addEventListener('mouseleave', () => {
+        const val = parseInt(document.getElementById('review-rating').value);
+        stars.forEach((s, i) => s.style.color = i < val ? '#fbbf24' : '#4b5563');
+    });
+});
+
+async function loadReviews() {
+    const container = document.getElementById('reviews-list');
+    const summary = document.getElementById('reviews-rating-summary');
+
+    try {
+        const res = await fetch(`/api/v1/phones/${PHONE_ID}/reviews`);
+        const data = await res.json();
+        if (!res.ok) throw new Error('Error');
+
+        summary.innerText = `⭐ ${data.rating} de 5 (${data.rating_count} reseñas)`;
+
+        if (data.data.length === 0) {
+            container.innerHTML = `<p style="color: var(--text-muted);">Aún no hay reseñas. ¡Sé el primero en opinar!</p>`;
+            return;
+        }
+
+        container.innerHTML = data.data.map(r => `
+            <div style="padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <div>
+                        <strong style="color: #fff;">${r.user_name}</strong>
+                        <span style="color: #fbbf24; margin-left: 0.6rem;">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</span>
+                    </div>
+                    <small style="color: var(--text-dim);">${new Date(r.created_at).toLocaleDateString('es-CO')}</small>
+                </div>
+                <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0; line-height: 1.5;">${r.comment}</p>
+            </div>
+        `).join('');
+    } catch (err) {
+        container.innerHTML = `<p style="color: var(--text-muted);">No se pudieron cargar las reseñas.</p>`;
+    }
+}
+
+async function handleReviewSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const msg = document.getElementById('review-msg');
+    const rating = document.getElementById('review-rating').value;
+
+    msg.style.display = 'none';
+    msg.className = '';
+
+    try {
+        const res = await fetch(`/api/v1/phones/${PHONE_ID}/reviews`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + (localStorage.getItem('electrophone_token') || '')
+            },
+            body: JSON.stringify({ rating: parseInt(rating), comment: form.comment.value })
+        });
+        const data = await res.json();
+
+        if (res.status === 401) {
+            showMsgReview('Debes <a href="/login" style="color:#818cf8;">iniciar sesión</a> para dejar una reseña.', true);
+            return;
+        }
+        if (res.status === 403) {
+            showMsgReview('Verifica tu cuenta por correo antes de dejar una reseña.', true);
+            return;
+        }
+        if (!res.ok) throw new Error(data.detail || 'Error al publicar');
+
+        form.reset();
+        showMsgReview('✅ ¡Reseña publicada! Gracias por tu opinión.', false);
+        loadReviews();
+    } catch (err) {
+        showMsgReview('❌ ' + err.message, true);
+    }
+}
+
+function showMsgReview(text, isError) {
+    const msg = document.getElementById('review-msg');
+    msg.style.display = 'block';
+    msg.style.background = isError ? 'rgba(239,68,68,0.12)' : 'rgba(16,185,129,0.12)';
+    msg.style.color = isError ? '#f87171' : '#34d399';
+    msg.style.border = isError ? '1px solid rgba(239,68,68,0.4)' : '1px solid rgba(16,185,129,0.4)';
+    msg.innerHTML = text;
+}
+</script>
+{% endblock %}

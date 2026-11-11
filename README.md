@@ -1,107 +1,82 @@
-# 📱 ElectroPhone - Tienda Web Virtual de Celulares con FastAPI
+# ElectroPhone — FastAPI + React
 
-Base completa, moderna y lista para producción de una tienda virtual especializada en venta de teléfonos celulares y smartphones, construida con **FastAPI**, **SQLAlchemy**, **Pydantic v2** y un frontend reactivo con diseño *Glassmorphism*.
+Tienda local de smartphones con API REST en FastAPI, SQLAlchemy y frontend React/Vite. React es la interfaz web principal; el frontend y la API se ejecutan por separado durante el desarrollo.
 
----
+## Requisitos
 
-## 🌟 Características Principales
+- Python 3.12 o superior
+- Node.js 20 o superior y npm
 
-### 🛒 Frontend & Experiencia de Usuario
-- **Catálogo Interactivo**: Filtrado reactivo en tiempo real por **marca** (Apple, Samsung, Xiaomi, Motorola, etc.), **precio máximo con slider en COP ($ 1.000.000 - $ 7.000.000)**, **memoria RAM** (6GB, 8GB, 12GB, 16GB), **almacenamiento** (128GB, 256GB, 512GB) y conectividad **5G**.
-- **Búsqueda Instantánea**: Búsqueda por modelo, procesador, color o descripción con debouncing.
-- **Carrito de Compras Persistente**: Drawer lateral de compras con almacenamiento en `localStorage`, cálculo automático de subtotal en **Pesos Colombianos (COP)**, envío gratis en pedidos mayores a **$ 1.200.000 COP** y actualización de unidades.
-- **Modal de Especificaciones Rápidas**: Visualización de ficha técnica completa (procesador, pantalla OLED, batería mAh, cámaras MP, etc.).
-- **Checkout y Generación de Órdenes**: Formulario de compra adaptado a Colombia (PSE, Nequi, Daviplata, tarjetas y contra entrega), validación de stock en tiempo real y código de orden único (`ORD-XXXXXXXX`).
-- **Rastreador de Pedidos**: Página dedicada `/track` para consultar el estado en vivo de cualquier orden de compra.
+## Ejecutar en local
 
-### ⚡ Backend & Arquitectura (FastAPI + SQLAlchemy)
-- **Base de Datos SQLite / PostgreSQL**: Integración con SQLAlchemy ORM con inicialización y *seeding* automático del catálogo en el primer arranque.
-- **Autenticación y Seguridad JWT**: Hashing seguro de contraseñas con `bcrypt` y tokens JWT para administradores y clientes.
-- **Endpoints RESTful Documentados**: Documentación interactiva Swagger UI en `/docs` y ReDoc en `/redoc`.
-- **Panel de Administración**: Métricas en tiempo real de facturación, total de órdenes, alertas de stock bajo y formulario para añadir nuevos smartphones al catálogo.
-- **Escrow en Blockchain (opcional)**: Contrato `PhoneEscrow` que custodia el pago de cada orden en **USDC** y lo libera al confirmar la entrega o lo reembolsa si hay un problema.
+### 1. Preparar el backend (PowerShell)
 
----
+Desde la raíz del repositorio:
 
-## 📁 Estructura del Proyecto
-
-```text
-Telefonos-FastApi/
-├── app/
-│   ├── core/
-│   │   ├── config.py          # Configuración del proyecto y variables
-│   │   ├── database.py        # Sesiones de SQLAlchemy y conexión
-│   │   ├── security.py        # Hashing de passwords y generación de tokens JWT
-│   │   └── seed.py            # Catálogo inicial de smartphones y admin por defecto
-│   ├── modules/
-│   │   ├── login/             # Autenticación, registro y JWT (rama: login)
-│   │   ├── inventario/        # Marcas, catálogo de celulares y CRUD (rama: inventario)
-│   │   ├── dashboard/         # Panel de administración y métricas (rama: dashboard)
-│   │   ├── ventas/            # Órdenes, checkout y rastreo de pedidos (base de main)
-│   │   └── blockchain/        # Integración web3.py con el contrato de escrow
-│   ├── api/
-│   │   └── router.py          # Router maestro que agrega los módulos
-│   ├── static/
-│   │   ├── css/style.css      # Estilos modernos Dark Glassmorphism
-│   │   └── js/app.js          # Lógica interactiva del cliente (carrito, filtros)
-│   ├── templates/             # Vistas Jinja2 (base, storefront, track, admin)
-│   └── main.py                # Inicialización de FastAPI, montaje estático y lifespans
-├── blockchain/                # Contratos Solidity + Hardhat
-│   ├── contracts/
-│   │   ├── PhoneEscrow.sol    # Escrow en USDC por orden
-│   │   └── MockUSDC.sol       # Stablecoin de prueba (6 decimales)
-│   ├── scripts/deploy.js      # Despliegue local y minteo de USDC de prueba
-│   └── test/                  # Tests de los contratos
-├── requirements.txt           # Dependencias de Python
-├── run.py                     # Script de arranque rápido
-└── README.md
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Copy-Item .env.example .env
 ```
 
----
+Si ya tienes un `.env`, no lo sobrescribas. La aplicación carga la configuración desde el `.env` de la raíz. SQLite crea `telefonos.db` en esa misma raíz al iniciar.
 
-## 🚀 Cómo Ejecutar el Proyecto
+### 2. Arrancar FastAPI
 
-### 1. Configurar el entorno
-```bash
-cp .env.example .env     # Windows: copy .env.example .env
-```
+En una primera terminal, desde la raíz:
 
-### 2. Instalar dependencias
-```bash
-pip install -r requirements.txt
-```
-
-### 3. Iniciar el servidor
-```bash
+```powershell
 python run.py
 ```
-*O usando uvicorn directamente:*
-```bash
-uvicorn app.main:app --reload
+
+La API queda en `http://127.0.0.1:8000`; documentación: `http://127.0.0.1:8000/docs`.
+
+### 3. Arrancar React
+
+En una segunda terminal:
+
+```powershell
+cd frontend
+# Si npm no está en PATH pero Node está en la ubicación habitual:
+$env:Path = "C:\Program Files\nodejs;$env:Path"
+npm ci
+npm run dev
 ```
 
-> La base de datos SQLite (`telefonos.db`) se crea automáticamente en el primer arranque, junto con el catálogo inicial y el administrador por defecto.
+Abre **http://localhost:5173**. Vite reenvía las solicitudes `/api` a FastAPI en el puerto 8000.
 
-### 4. Abrir en tu navegador
-- 🌐 **Tienda Virtual**: [http://127.0.0.1:8000](http://127.0.0.1:8000)
-- 📦 **Rastrear Pedido**: [http://127.0.0.1:8000/track](http://127.0.0.1:8000/track)
-- ⚙️ **Panel de Administración**: [http://127.0.0.1:8000/admin](http://127.0.0.1:8000/admin)
-- ⚡ **Documentación Swagger API**: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
+### Cuenta local
 
----
+Si la base local es nueva, se crea un administrador para desarrollo con el correo y contraseña definidos por `FIRST_ADMIN_EMAIL` y `FIRST_ADMIN_PASSWORD` en `.env`. Los valores de ejemplo son únicamente para desarrollo; cámbialos antes de exponer el sistema.
 
-## ⛓️ Escrow en Blockchain (opcional)
+Sin SMTP, el backend imprime en su terminal los enlaces de verificación. `FRONTEND_URL` debe apuntar a React para que esos enlaces abran la página correcta.
+
+## Funciones incluidas
+
+- Catálogo, filtros, búsqueda, detalle y reseñas.
+- Registro, acceso JWT, verificación de correo y perfil.
+- Carrito local, validación de cupones y creación/rastreo de pedidos.
+- Panel de administración de métricas, inventario, órdenes y cupones.
+- Escrow en blockchain opcional: custodia el pago de una orden en USDC y lo libera o reembolsa.
+
+**Pagos:** el checkout local es una demo. No existe integración con PSE, Nequi, tarjetas ni otro proveedor; los pedidos quedan con pago pendiente y no se realiza ningún cobro. El escrow en USDC es un módulo independiente y opcional.
+
+## Escrow en Blockchain (opcional)
 
 El módulo viene **desactivado por defecto** (`BLOCKCHAIN_ENABLED=false`), por lo que la tienda funciona igual sin nodo ni contratos.
 
 Para probarlo en local:
 
-```bash
+```powershell
 # Terminal 1: nodo Hardhat
-cd blockchain && npm install && npm run node
+cd blockchain
+npm install
+npm run node
 
 # Terminal 2: desplegar MockUSDC + PhoneEscrow
-cd blockchain && npm run deploy:local
+cd blockchain
+npm run deploy:local
 ```
 
 Luego añade a tu `.env`:
@@ -117,26 +92,45 @@ BLOCKCHAIN_COP_PER_USDC=4000
 
 Los endpoints quedan documentados en Swagger bajo **Blockchain / Escrow**. La guía completa (roles del contrato, API, tests y checklist de producción) está en [`blockchain/README.md`](blockchain/README.md).
 
----
+## Pruebas
 
-## 🔑 Credenciales por Defecto (Admin)
+Desde la raíz, con las dependencias del backend instaladas:
 
-Al iniciar la aplicación por primera vez, se genera automáticamente el usuario administrador y el catálogo inicial de celulares (iPhone 15 Pro Max, Galaxy S24 Ultra, Xiaomi 14 Ultra, Pixel 8 Pro, OnePlus 12, etc.):
+```powershell
+python -m pytest -q
+```
 
-- **Email**: `admin@electrophone.com`
-- **Contraseña**: `admin123456`
+Compilar React:
 
----
+```powershell
+cd frontend
+npm run build
+```
 
-## 🌿 Organización por Ramas (Módulos)
+Probar los contratos:
 
-El proyecto está organizado en **módulos** dentro de `app/modules/`, y cada módulo tiene su propia rama de trabajo en GitHub:
+```powershell
+cd blockchain
+npm test
+```
 
-| Rama | Módulo | Contenido |
-|------|--------|-----------|
-| `main` | Base + `ventas` | Tienda completa y funcional, órdenes, checkout y rastreo |
-| `login` | `app/modules/login/` | Autenticación, registro, login y tokens JWT |
-| `inventario` | `app/modules/inventario/` | Marcas y catálogo de celulares (CRUD) |
-| `dashboard` | `app/modules/dashboard/` | Panel de administración y métricas |
+## Docker Compose
 
-Cada rama es una copia de `main` con su módulo aislado en su propia carpeta, lista para desarrollarse y mergearse de vuelta a `main`.
+El Dockerfile raíz compila React y lo incluye en la misma imagen que FastAPI. Para probar esa imagen localmente, con Docker instalado y `.env` preparado:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+```
+
+La tienda React y la API quedan juntas en `http://localhost:8000`; la documentación de FastAPI está en `http://localhost:8000/docs`.
+
+## Estructura relevante
+
+```text
+app/                 FastAPI, modelos, servicios y rutas
+frontend/            React, Vite y cliente HTTP
+frontend_flutter/    Cliente Flutter heredado
+android/             Aplicación Android heredada
+blockchain/          Contratos Solidity, tests y despliegue Hardhat
+tests/               Pruebas del backend
+```

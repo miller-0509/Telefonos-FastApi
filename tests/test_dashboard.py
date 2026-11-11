@@ -34,6 +34,14 @@ def test_admin_metrics(client, admin_token):
     assert "total_orders" in data
 
 
+def test_legacy_admin_page_redirects_to_react(client):
+    from app.core.config import settings
+
+    resp = client.get("/admin", follow_redirects=False)
+    assert resp.status_code == 307
+    assert resp.headers["location"] == f"{settings.FRONTEND_URL}/admin"
+
+
 def test_rate_limit_login(client):
     # Hacer muchos intentos fallidos de login
     last_status = 0

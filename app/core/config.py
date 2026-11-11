@@ -30,8 +30,9 @@ class Settings:
     SMTP_FROM_EMAIL: str = os.getenv("SMTP_FROM_EMAIL", "no-reply@electrophone.com")
     SMTP_FROM_NAME: str = os.getenv("SMTP_FROM_NAME", "ElectroPhone Store")
     VERIFICATION_TOKEN_EXPIRE_HOURS: int = int(os.getenv("VERIFICATION_TOKEN_EXPIRE_HOURS", "24"))
-    # URL pública de la app para construir el enlace de verificación
-    APP_BASE_URL: str = os.getenv("APP_BASE_URL", "http://127.0.0.1:8000")
+    # URL del frontend React para construir los enlaces de verificación.
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+    SERVE_FRONTEND: bool = os.getenv("SERVE_FRONTEND", "false").lower() in {"1", "true", "yes"}
 
     # CORS: orígenes permitidos (separados por coma). "*" para permitir todos (solo desarrollo)
     CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "*")

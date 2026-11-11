@@ -1,0 +1,391 @@
+{% extends "base.html" %}
+
+{% block title %}Panel de Control | ElectroPhone Admin{% endblock %}
+
+{% block content %}
+<div style="max-width: 1300px; margin: 2rem auto 5rem; padding: 0 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <div>
+            <h1 style="font-size: 2.2rem; color: #fff; font-weight: 800;">Panel de Administración</h1>
+            <p style="color: var(--text-muted);">Gestiona el inventario de smartphones, órdenes y catálogo.</p>
+        </div>
+        <div>
+            <button class="nav-btn" onclick="openAddPhoneModal()" style="background: var(--accent-gradient); color: #fff; border: none; font-weight: 700; padding: 0.75rem 1.25rem;">
+                ➕ Agregar Celular
+            </button>
+        </div>
+    </div>
+
+    <!-- Metrics Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-md);">
+            <div style="color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase;">Ventas Totales</div>
+            <div style="font-size: 1.8rem; font-weight: 800; color: #fff; margin: 0.3rem 0;" id="metric-revenue">{{ metrics.total_revenue | cop }}</div>
+            <small style="color: var(--success);">Ingresos registrados (COP)</small>
+        </div>
+
+        <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-md);">
+            <div style="color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase;">Órdenes Recibidas</div>
+            <div style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0.3rem 0;">{{ metrics.total_orders }}</div>
+            <small style="color: var(--accent);">Ventas procesadas</small>
+        </div>
+
+        <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-md);">
+            <div style="color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase;">Celulares en Catálogo</div>
+            <div style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0.3rem 0;">{{ metrics.total_phones }}</div>
+            <small style="color: #818cf8;">Modelos disponibles</small>
+        </div>
+
+        <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-md);">
+            <div style="color: var(--text-dim); font-size: 0.85rem; text-transform: uppercase;">Marcas Registradas</div>
+            <div style="font-size: 2rem; font-weight: 800; color: #fff; margin: 0.3rem 0;">{{ metrics.total_brands }}</div>
+            <small style="color: var(--warning);">Apple, Samsung, Xiaomi...</small>
+        </div>
+    </div>
+
+    <!-- Inventory Table -->
+    <div class="glass" style="border-radius: var(--radius-lg); padding: 1.5rem; overflow-x: auto;">
+        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 1.2rem;">Inventario de Smartphones</h3>
+        
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-dim);">
+                    <th style="padding: 0.8rem;">Equipo</th>
+                    <th style="padding: 0.8rem;">Marca</th>
+                    <th style="padding: 0.8rem;">RAM / ROM</th>
+                    <th style="padding: 0.8rem;">Precio (COP)</th>
+                    <th style="padding: 0.8rem;">Stock</th>
+                    <th style="padding: 0.8rem;">5G</th>
+                    <th style="padding: 0.8rem; text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for phone in phones %}
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <td style="padding: 0.8rem; display: flex; align-items: center; gap: 0.75rem;">
+                        <img src="{{ phone.image_url }}" alt="{{ phone.name }}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 6px;">
+                        <div>
+                            <strong style="color: #fff; display: block;">{{ phone.name }}</strong>
+                            <small style="color: var(--text-dim);">{{ phone.color }}</small>
+                        </div>
+                    </td>
+                    <td style="padding: 0.8rem; color: var(--text-muted);">{{ phone.brand.name if phone.brand else '-' }}</td>
+                    <td style="padding: 0.8rem; color: var(--text-muted);">{{ phone.ram_gb }}GB / {{ phone.storage_gb }}GB</td>
+                    <td style="padding: 0.8rem; font-weight: 700; color: #fff;">{{ phone.price | cop }}</td>
+                    <td style="padding: 0.8rem;">
+                        {% if phone.stock <= 5 %}
+                        <span style="font-weight: 700; color: #ef4444;">{{ phone.stock }} u.</span>
+                        {% else %}
+                        <span style="font-weight: 700; color: #10b981;">{{ phone.stock }} u.</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 0.8rem;">
+                        {% if phone.is_5g %}
+                        <span class="badge badge-5g">5G</span>
+                        {% else %}
+                        <span style="color: var(--text-dim);">4G</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 0.8rem; text-align: right;">
+                        <button onclick="deletePhoneItem('{{ phone.id }}')" style="background: rgba(239, 68, 68, 0.15); border: 1px solid #ef4444; color: #ef4444; padding: 0.35rem 0.75rem; border-radius: 4px; cursor: pointer;">
+                            Eliminar
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Orders Management -->
+    <div class="glass" style="border-radius: var(--radius-lg); padding: 1.5rem; margin-top: 2.5rem;">
+        <h3 style="font-size: 1.25rem; color: #fff; margin-bottom: 1.2rem;">📦 Gestión de Órdenes</h3>
+        <div id="admin-orders-container">
+            <p style="color: var(--text-muted);">Cargando órdenes...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Add Phone -->
+<div id="add-phone-modal" class="modal-overlay">
+    <div class="modal-box glass" style="max-width: 700px; padding: 2rem;">
+        <button class="modal-close" onclick="closeAddPhoneModal()">&times;</button>
+        <h2 style="font-size: 1.5rem; color: #fff; margin-bottom: 0.5rem;">Agregar Nuevo Celular</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Registra un nuevo smartphone en el catálogo con sus especificaciones.</p>
+
+        <form id="add-phone-form" onsubmit="handleAddPhoneSubmit(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Nombre del Smartphone</label>
+                    <input type="text" name="name" required placeholder="Samsung Galaxy S24+" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Slug (URL Única)</label>
+                    <input type="text" name="slug" required placeholder="samsung-galaxy-s24-plus-256gb" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Marca</label>
+                    <select name="brand_id" required style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                        {% for brand in brands %}
+                        <option value="{{ brand.id }}">{{ brand.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Precio ($ COP)</label>
+                    <input type="number" step="1000" name="price" required placeholder="3499900" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Stock</label>
+                    <input type="number" name="stock" value="15" required style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">RAM (GB)</label>
+                    <input type="number" name="ram_gb" value="12" required style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Almacenamiento (GB)</label>
+                    <input type="number" name="storage_gb" value="256" required style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Color</label>
+                    <input type="text" name="color" value="Cobalt Violet" required style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">URL de Imagen</label>
+                <input type="url" name="image_url" required value="https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80" style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;">
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label style="display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.3rem;">Descripción</label>
+                <textarea name="description" rows="3" placeholder="Detalles de pantalla, batería y cámara..." style="width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid var(--border-color); background: #1f2937; color: #fff;"></textarea>
+            </div>
+
+            <button type="submit" class="btn-checkout" style="margin-top: 0;">
+                💾 Guardar Celular en Catálogo
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function adminToken() {
+    return localStorage.getItem('electrophone_token') || '';
+}
+
+function adminHeaders(extra = {}) {
+    return Object.assign({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + adminToken() }, extra);
+}
+
+async function requireAdmin() {
+    // Si no hay sesión o no es admin, redirigir al login
+    const user = getCurrentUser();
+    if (!user || !user.is_admin) {
+        window.location.href = '/login';
+        return null;
+    }
+    return user;
+}
+
+function openAddPhoneModal() {
+    document.getElementById('add-phone-modal').classList.add('active');
+}
+
+function closeAddPhoneModal() {
+    document.getElementById('add-phone-modal').classList.remove('active');
+}
+
+async function handleAddPhoneSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    
+    // Create phone payload
+    const payload = {
+        name: form.name.value,
+        slug: form.slug.value.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        brand_id: parseInt(form.brand_id.value),
+        price: parseFloat(form.price.value),
+        stock: parseInt(form.stock.value),
+        ram_gb: parseInt(form.ram_gb.value),
+        storage_gb: parseInt(form.storage_gb.value),
+        color: form.color.value,
+        image_url: form.image_url.value,
+        description: form.description.value,
+        is_5g: true,
+        is_featured: false,
+        is_active: true
+    };
+
+    try {
+        const res = await fetch('/api/v1/phones', {
+            method: 'POST',
+            headers: adminHeaders(),
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Error al guardar');
+        }
+
+        showToast('¡Celular agregado exitosamente!', 'success');
+        closeAddPhoneModal();
+        setTimeout(() => window.location.reload(), 1000);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+async function deletePhoneItem(phoneId) {
+    if (!confirm('¿Estás seguro de eliminar este celular del catálogo?')) return;
+
+    try {
+        const res = await fetch(`/api/v1/phones/${phoneId}`, { method: 'DELETE', headers: adminHeaders() });
+        if (!res.ok) throw new Error('Error al eliminar');
+        showToast('Celular eliminado', 'info');
+        setTimeout(() => window.location.reload(), 800);
+    } catch (err) {
+        showToast(err.message, 'error');
+    }
+}
+
+// ================= Ordenes (admin) =================
+document.addEventListener('DOMContentLoaded', async () => {
+    const user = await requireAdmin();
+    if (user) loadAdminOrders();
+});
+
+async function loadAdminOrders() {
+    const container = document.getElementById('admin-orders-container');
+    if (!container) return;
+
+    try {
+        const res = await fetch('/api/v1/orders', { headers: adminHeaders() });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Error al cargar órdenes');
+        }
+        const orders = await res.json();
+
+        if (orders.length === 0) {
+            container.innerHTML = `<p style="color: var(--text-muted);">Aún no hay órdenes registradas.</p>`;
+            return;
+        }
+
+        container.innerHTML = `
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                <thead>
+                    <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-dim);">
+                        <th style="padding: 0.8rem;">Orden</th>
+                        <th style="padding: 0.8rem;">Cliente</th>
+                        <th style="padding: 0.8rem;">Total</th>
+                        <th style="padding: 0.8rem;">Pago</th>
+                        <th style="padding: 0.8rem;">Estado</th>
+                        <th style="padding: 0.8rem;">Fecha</th>
+                        <th style="padding: 0.8rem; text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${orders.map(order => `
+                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                            <td style="padding: 0.8rem; font-family: monospace; color: var(--primary); font-weight: 700;">${order.order_number}</td>
+                            <td style="padding: 0.8rem;">
+                                <strong style="color:#fff; display:block;">${order.customer_name}</strong>
+                                <small style="color: var(--text-dim);">${order.customer_email}</small>
+                            </td>
+                            <td style="padding: 0.8rem; font-weight: 700; color: #fff;">${formatCOP(order.total)}</td>
+                            <td style="padding: 0.8rem; color: var(--text-muted); text-transform: capitalize;">${order.payment_method}<br><small>${order.payment_status}</small></td>
+                            <td style="padding: 0.8rem;">
+                                <select data-order-id="${order.id}" onchange="changeOrderStatus(this)" style="padding:0.4rem; border-radius:4px; border:1px solid var(--border-color); background:#1f2937; color:#fff;">
+                                    ${['pending','processing','shipped','delivered','cancelled'].map(s => `<option value="${s}" ${order.status===s?'selected':''}>${s}</option>`).join('')}
+                                </select>
+                            </td>
+                            <td style="padding: 0.8rem; color: var(--text-muted);">${new Date(order.created_at).toLocaleDateString('es-CO')}</td>
+                            <td style="padding: 0.8rem; text-align: right;">
+                                <button onclick="showOrderDetail(${order.id})" style="background: rgba(99,102,241,0.15); border:1px solid #6366f1; color:#a5b4fc; padding:0.35rem 0.75rem; border-radius:4px; cursor:pointer;">Ver</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        `;
+    } catch (err) {
+        container.innerHTML = `<p style="color: var(--danger);">${err.message}</p>`;
+    }
+}
+
+async function changeOrderStatus(select) {
+    const orderId = select.dataset.orderId;
+    const newStatus = select.value;
+
+    try {
+        const res = await fetch(`/api/v1/orders/${orderId}/status`, {
+            method: 'PATCH',
+            headers: adminHeaders(),
+            body: JSON.stringify({ status: newStatus })
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.detail || 'Error al actualizar estado');
+        }
+        showToast('Estado de la orden actualizado', 'success');
+    } catch (err) {
+        showToast(err.message, 'error');
+        loadAdminOrders();
+    }
+}
+
+function showOrderDetail(orderId) {
+    // Reusar el modal de detalle de teléfono para mostrar la orden
+    const modal = document.getElementById('phone-detail-modal');
+    const content = document.getElementById('phone-modal-content');
+    if (!modal || !content) return;
+
+    fetch(`/api/v1/orders/${orderId}`, { headers: adminHeaders() })
+        .then(res => res.json())
+        .then(order => {
+            content.innerHTML = `
+                <div style="padding: 2rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <h2 style="font-size:1.4rem; color:#fff; font-family:monospace;">${order.order_number}</h2>
+                        <button class="modal-close" onclick="closePhoneModal()" style="position:static;">&times;</button>
+                    </div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-bottom:1.5rem; background:rgba(255,255,255,0.04); padding:1rem; border-radius:8px;">
+                        <div><small style="color:var(--text-dim);">Cliente</small><div style="color:#fff;">${order.customer_name}</div></div>
+                        <div><small style="color:var(--text-dim);">Correo</small><div style="color:#fff;">${order.customer_email}</div></div>
+                        <div><small style="color:var(--text-dim);">Teléfono</small><div style="color:#fff;">${order.customer_phone}</div></div>
+                        <div><small style="color:var(--text-dim);">Dirección</small><div style="color:#fff;">${order.shipping_address}, ${order.city}</div></div>
+                        <div><small style="color:var(--text-dim);">Pago</small><div style="color:#fff; text-transform:capitalize;">${order.payment_method} (${order.payment_status})</div></div>
+                        <div><small style="color:var(--text-dim);">Fecha</small><div style="color:#fff;">${new Date(order.created_at).toLocaleString('es-CO')}</div></div>
+                    </div>
+                    <h4 style="color:#fff; margin-bottom:0.8rem;">Productos:</h4>
+                    <div style="margin-bottom:1rem;">
+                        ${order.items.map(item => `
+                            <div style="display:flex; justify-content:space-between; padding:0.5rem 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                                <span style="color:#fff;">${item.phone_name} <small style="color:var(--text-muted);">x${item.quantity}</small></span>
+                                <span style="color:var(--accent); font-weight:700;">${formatCOP(item.subtotal)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div style="display:flex; justify-content:space-between; border-top:1px dashed var(--border-color); padding-top:1rem;">
+                        <span style="color:var(--text-muted); font-size:1.1rem;">Total:</span>
+                        <span style="font-size:1.5rem; font-weight:800; color:#fff;">${formatCOP(order.total)}</span>
+                    </div>
+                </div>
+            `;
+            modal.classList.add('active');
+        })
+        .catch(err => showToast(err.message, 'error'));
+}
+</script>
+{% endblock %}

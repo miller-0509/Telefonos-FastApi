@@ -5,7 +5,7 @@ from app.core.config import settings
 
 
 def build_verification_url(token: str) -> str:
-    base = settings.APP_BASE_URL.rstrip("/")
+    base = settings.FRONTEND_URL
     return f"{base}/verify-email?token={token}"
 
 
@@ -102,11 +102,11 @@ def send_order_confirmation_email(to_email: str, customer_name: str, order: dict
         f"<td style='padding:8px 0;color:#a5b4fc;text-align:right;font-weight:700;'>{format_cop(item['subtotal'])}</td></tr>"
         for item in order.get("items", [])
     )
-    subject = f"Tu pedido {order.get('order_number', '')} fue confirmado - ElectroPhone"
+    subject = f"Recibimos tu pedido {order.get('order_number', '')} - ElectroPhone"
     text = (
-        f"Hola {customer_name}, tu pedido {order.get('order_number', '')} fue confirmado.\n"
+        f"Hola {customer_name}, recibimos tu pedido {order.get('order_number', '')}.\n"
         f"Total: {format_cop(order.get('total', 0))}\n"
-        f"Puedes rastrearlo con tu código de seguimiento."
+        f"Puedes consultar su estado con tu código de seguimiento."
     )
     html = f"""\
 <html>
@@ -117,8 +117,8 @@ def send_order_confirmation_email(to_email: str, customer_name: str, order: dict
         <tr>
           <td style="padding:28px 24px 12px;">
             <div style="font-size:14px;font-weight:700;color:#818cf8;letter-spacing:1px;">📱 ELECTROPHONE STORE</div>
-            <h1 style="color:#ffffff;font-size:22px;margin:12px 0 4px;">¡Gracias por tu compra!</h1>
-            <p style="color:#9aa3c7;font-size:14px;line-height:1.6;margin:8px 0;">Hola <strong style="color:#ffffff;">{customer_name}</strong>, confirmamos tu pedido y pronto lo estaremos despachando.</p>
+            <h1 style="color:#ffffff;font-size:22px;margin:12px 0 4px;">¡Recibimos tu pedido!</h1>
+            <p style="color:#9aa3c7;font-size:14px;line-height:1.6;margin:8px 0;">Hola <strong style="color:#ffffff;">{customer_name}</strong>, registramos tu pedido. El pago queda pendiente de validación.</p>
           </td>
         </tr>
         <tr>

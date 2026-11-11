@@ -1,12 +1,49 @@
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from app.core.config import settings
 
+# ---------------------------------------------------------------------------
+# Resolución de ruta para SQLite
+# ---------------------------------------------------------------------------
+# SQLAlchemy acepta tres formas:
+#   sqlite:///ruta/relativa.db   -> relativa al CWD
+#   sqlite:////ruta/absoluta.db  -> absoluta (4 slashes)
+# En Coolify/Docker el WORKDIR es /app, así que:
+#   DATABASE_URL=sqlite:///./data/telefonos.db  ->  /app/data/telefonos.db  ✓
+#   DATABASE_URL=sqlite:////app/data/telefonos.db  (equivalente absoluto)   ✓
+# Nos aseguramos de que el directorio exista antes de abrir la conexión.
+
+_db_url = settings.DATABASE_URL
+
+if _db_url.startswith("sqlite"):
+    # Extraemos la parte de ruta (después de sqlite:/// o sqlite:////)
+    if _db_url.startswith("sqlite:////"):
+        # Ruta absoluta: sqlite:////ruta/abs
+        _raw_path = "/" + _db_url[len("sqlite:////"):]
+    else:
+        # Ruta relativa: sqlite:///./algo  o  sqlite:///algo
+        _raw_path = _db_url[len("sqlite:///"):]
+
+    # Convertir a ruta absoluta (respeta el CWD del proceso, que en Docker es /app)
+    _db_abs_path = os.path.abspath(_raw_path)
+
+    # Crear directorio si no existe (p.ej. /app/data)
+    _db_dir = os.path.dirname(_db_abs_path)
+    os.makedirs(_db_dir, exist_ok=True)
+
+    # Reescribir la URL con la ruta absoluta para evitar ambigüedades
+    _db_url = f"sqlite:///{_db_abs_path}"
+
+    print(f"[DB] SQLite path resuelto: {_db_abs_path}")
+
+# ---------------------------------------------------------------------------
+
 # SQLite requires check_same_thread=False for multiple concurrent requests
-connect_args = {"check_same_thread": False} if settings.DATABASE_URL.startswith("sqlite") else {}
+connect_args = {"check_same_thread": False} if _db_url.startswith("sqlite") else {}
 
 engine = create_engine(
-    settings.DATABASE_URL,
+    _db_url,
     connect_args=connect_args,
     echo=False
 )
@@ -24,12 +61,20 @@ def get_db():
         db.close()
 
 
+def _get_sqlite_file_path() -> str:
+    """Devuelve la ruta absoluta al archivo .db cuando se usa SQLite."""
+    if _db_url.startswith("sqlite:////"):
+        return "/" + _db_url[len("sqlite:////"):]
+    return _db_url[len("sqlite:///"):]
+
+
 def migrate_sqlite_schema():
     """Añade columnas nuevas a tablas existentes en SQLite (CREATE TABLE IF NOT EXISTS no las agrega)."""
-    if not settings.DATABASE_URL.startswith("sqlite"):
+    if not _db_url.startswith("sqlite"):
         return
     import sqlite3
-    db_path = settings.DATABASE_URL.replace("sqlite:///", "")
+    db_path = _get_sqlite_file_path()
+    print(f"[DB] Ejecutando migrate_sqlite_schema en: {db_path}")
     conn = sqlite3.connect(db_path)
     cur = conn.cursor()
 
